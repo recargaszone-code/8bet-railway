@@ -23,6 +23,9 @@ LOGIN = "857789345"
 PASSWORD = "killobytes"
 URL = "https://m.888bets.co.mz/pt/games/detail/jogos/normal/7787"
 
+# Coloque seu proxy aqui (ex: http://usuario:senha@41.220.200.21:porta ou IP:porta)
+PROXY = ""  # <-- PREENCHA AQUI O PROXY DE MZ
+
 historico = []
 
 def enviar_telegram(msg):
@@ -47,13 +50,13 @@ def enviar_print(driver, legenda="📸 Screenshot"):
     except:
         pass
 
-# ========================= SCRAPER 888BETS COM PRINTS =========================
+# ========================= SCRAPER 888BETS COM PROXY + PRINTS =========================
 def iniciar_scraper():
     global historico
     while True:
         driver = None
         try:
-            enviar_telegram("🟢 Iniciando 888bets Aviator com prints em cada passo...")
+            enviar_telegram("🟢 Iniciando 888bets Aviator com proxy + prints...")
 
             chrome_options = Options()
             chrome_options.add_argument("--headless=new")
@@ -61,19 +64,22 @@ def iniciar_scraper():
             chrome_options.add_argument("--disable-dev-shm-usage")
             chrome_options.add_argument("--disable-gpu")
             chrome_options.add_argument("--window-size=1366,768")
-            chrome_options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36")
+            chrome_options.add_argument("--user-agent=Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1")  # mobile UA pra parecer real
+
+            if PROXY:
+                chrome_options.add_argument(f"--proxy-server={PROXY}")
+                enviar_telegram(f"Proxy ativado: {PROXY}")
 
             service = Service(ChromeDriverManager().install())
             driver = webdriver.Chrome(service=service, options=chrome_options)
-            wait = WebDriverWait(driver, 45)
+            wait = WebDriverWait(driver, 60)
 
-            # PASSO 1
             driver.get(URL)
             enviar_telegram("🌐 1. Página aberta")
             enviar_print(driver, "📸 1. Página carregada")
             time.sleep(15)
 
-            # PASSO 2 - Login (se precisar)
+            # PASSO 2 - Login
             try:
                 enviar_telegram("🔑 2. Tentando login...")
                 enviar_print(driver, "📸 2. Antes do login")
@@ -85,7 +91,7 @@ def iniciar_scraper():
                     time.sleep(0.08)
                 enviar_telegram("📌 3. Telefone preenchido")
                 enviar_print(driver, "📸 3. Telefone preenchido")
-                time.sleep(8)
+                time.sleep(10)
 
                 pwd = driver.find_element(By.ID, "login-password")
                 pwd.clear()
@@ -94,13 +100,13 @@ def iniciar_scraper():
                     time.sleep(0.08)
                 enviar_telegram("📌 4. Senha preenchida")
                 enviar_print(driver, "📸 4. Senha preenchida")
-                time.sleep(8)
+                time.sleep(10)
 
                 btn = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'button[data-test="sign-in-modal-btn"]')))
                 btn.click()
                 enviar_telegram("✅ 5. Login enviado!")
                 enviar_print(driver, "📸 5. Login enviado")
-                time.sleep(15)
+                time.sleep(20)
             except:
                 enviar_telegram("⚠️ 5. Já logado ou login pulado")
                 enviar_print(driver, "📸 5. Login pulado")
@@ -110,7 +116,7 @@ def iniciar_scraper():
             driver.switch_to.frame(iframe)
             enviar_telegram("✅ 6. Entrou no iframe gm-frm")
             enviar_print(driver, "📸 6. Dentro do iframe")
-            time.sleep(12)
+            time.sleep(15)
 
             enviar_telegram("🚀 7. Monitoramento iniciado (a cada 10s)")
             enviar_print(driver, "📸 7. Monitoramento iniciado")
@@ -162,7 +168,7 @@ def get_history(): return jsonify(historico)
 @app.route("/api/last")
 def get_last(): return jsonify(historico[-1] if historico else None)
 @app.route("/")
-def home(): return "✅ 888bets Aviator com prints rodando!"
+def home(): return "✅ 888bets Aviator rodando!"
 
 if __name__ == "__main__":
     threading.Thread(target=iniciar_scraper, daemon=True).start()
